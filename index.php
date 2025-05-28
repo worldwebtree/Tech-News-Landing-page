@@ -54,21 +54,39 @@ function fetchTechNews() {
         $titleLower = strtolower($title);
         $descLower = strtolower($description);
         
+        // Determine category based on keywords
+        $category = 'Technology';
         foreach ($techKeywords as $keyword) {
             if (strpos($titleLower, strtolower($keyword)) !== false || 
                 strpos($descLower, strtolower($keyword)) !== false) {
                 $isTechRelated = true;
+                
+                // Assign category based on keywords
+                if (strpos($titleLower, 'ai') !== false || strpos($titleLower, 'artificial intelligence') !== false) {
+                    $category = 'AI';
+                } elseif (strpos($titleLower, 'programming') !== false || strpos($titleLower, 'code') !== false) {
+                    $category = 'Programming';
+                } elseif (strpos($titleLower, 'blockchain') !== false || strpos($titleLower, 'cryptocurrency') !== false) {
+                    $category = 'Blockchain';
+                } elseif (strpos($titleLower, 'startup') !== false) {
+                    $category = 'Startup';
+                }
                 break;
             }
         }
         
         if ($isTechRelated) {
+            // Generate a unique color based on the source
+            $color = sprintf('#%06X', crc32($source) & 0xFFFFFF);
+            
             $news[] = [
                 'title' => $title,
                 'description' => strip_tags($description),
                 'source' => $source,
                 'pubDate' => date('F j, Y, g:i a', strtotime($pubDate)),
-                'link' => $link
+                'link' => $link,
+                'color' => $color,
+                'category' => $category
             ];
         }
     }
@@ -81,11 +99,17 @@ function fetchTechNews() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stay updated with the latest technology news, programming updates, and AI innovations">
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1f2937" media="(prefers-color-scheme: dark)">
     <title>Tech News Today</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <!-- Add PWA support -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
     <header>
@@ -105,11 +129,14 @@ function fetchTechNews() {
 
     <main>
         <section class="hero" data-aos="fade-up">
-            <h1>Stay Updated with Latest Tech News</h1>
-            <p>Your daily dose of technology, programming, and innovation news</p>
-            <button class="refresh-button" onclick="location.reload()">
-                <i class="fas fa-sync-alt"></i> Refresh News
-            </button>
+            <div class="hero-content">
+                <h1>Stay Updated with Latest Tech News</h1>
+                <p>Your daily dose of technology, programming, and innovation news</p>
+                <button class="refresh-button" onclick="location.reload()">
+                    <i class="fas fa-sync-alt"></i> Refresh News
+                </button>
+            </div>
+            <div class="hero-background"></div>
         </section>
 
         <section class="news-container">
@@ -124,17 +151,20 @@ function fetchTechNews() {
                     echo '</div>';
                 } else {
                     foreach ($news as $index => $item) {
-                        echo '<article class="news-item" data-aos="fade-up" data-aos-delay="' . ($index * 100) . '">';
+                        echo '<article class="news-item" data-aos="fade-up" data-aos-delay="' . ($index * 100) . '" 
+                                  data-category="' . htmlspecialchars($item['category']) . '" 
+                                  style="--source-color: ' . $item['color'] . '">';
                         echo '<div class="news-content">';
-                        echo '<h2><a href="' . htmlspecialchars($item['link']) . '" target="_blank">' . htmlspecialchars($item['title']) . '</a></h2>';
+                        echo '<h2><a href="' . htmlspecialchars($item['link']) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($item['title']) . '</a></h2>';
                         echo '<div class="news-meta">';
                         echo '<span class="source"><i class="fas fa-newspaper"></i> ' . htmlspecialchars($item['source']) . '</span>';
                         echo '<span class="date"><i class="fas fa-clock"></i> ' . htmlspecialchars($item['pubDate']) . '</span>';
+                        echo '<span class="category"><i class="fas fa-tag"></i> ' . htmlspecialchars($item['category']) . '</span>';
                         echo '</div>';
                         echo '<div class="description">' . htmlspecialchars($item['description']) . '</div>';
                         echo '</div>';
                         echo '<div class="news-actions">';
-                        echo '<a href="' . htmlspecialchars($item['link']) . '" target="_blank" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>';
+                        echo '<a href="' . htmlspecialchars($item['link']) . '" target="_blank" rel="noopener noreferrer" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>';
                         echo '</div>';
                         echo '</article>';
                     }
@@ -167,10 +197,10 @@ function fetchTechNews() {
             <div class="footer-section" data-aos="fade-up" data-aos-delay="200">
                 <h3><i class="fas fa-share-alt"></i> Connect With Us</h3>
                 <div class="social-links">
-                    <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
-                    <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                    <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="#" title="Twitter" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" title="LinkedIn" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" title="GitHub" aria-label="GitHub"><i class="fab fa-github"></i></a>
                 </div>
             </div>
         </div>
